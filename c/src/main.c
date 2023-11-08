@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(int argc, char **argv) {
-    if(!are_args_valid(argc, (const char**)argv)) {
+    if(!are_args_valid(argc, argv)) {
         throw_error("");
     }
     write_statistics(argv[1]);

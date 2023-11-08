@@ -9,7 +9,7 @@ void throw_error(const char* msg) {
     exit(-1);
 }
 
-bool is_same_extension(const char *file_name, const char* expected_extension) {
+bool is_same_extension(char *file_name, char* expected_extension) {
     char *extension = strrchr(file_name, '.');
 
     if(NULL == extension || strcmp(extension, expected_extension)) {
@@ -25,7 +25,7 @@ bool is_same_extension(const char *file_name, const char* expected_extension) {
     return true;
 }
 
-bool are_args_valid(const int argc, const char** argv) {
+bool are_args_valid(int argc, char** argv) {
     if(argc != 2) {
         fprintf(stderr, "Usage ./program <input_file>\n");
         return false;
