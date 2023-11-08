@@ -1,13 +1,7 @@
 #include "generals.h"
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
-
-void throw_error(const char* msg) {
-    perror(msg);
-    exit(-1);
-}
 
 bool is_same_extension(char *file_name, char* expected_extension) {
     char *extension = strrchr(file_name, '.');

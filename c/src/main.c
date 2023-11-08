@@ -4,8 +4,12 @@
 
 int main(int argc, char **argv) {
     if(!are_args_valid(argc, argv)) {
-        throw_error("");
+        perror("");
+        return -1;
     }
-    write_statistics(argv[1]);
+    if(!write_statistics(argv[1])) {
+        perror("");
+        return -1;
+    };
     return 0;
 }

@@ -1,3 +1,5 @@
 #pragma once 
 
-void write_statistics(const char* file_name);
+#include <stdbool.h>
+
+bool write_statistics(const char* file_name);
