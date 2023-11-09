@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(OS_Project)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+
 option(BUILD_TESTS "Build tests" OFF)
 option(DEBUG "Debug mode" OFF)
 
