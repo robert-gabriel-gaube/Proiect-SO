@@ -52,9 +52,18 @@ bool write_descriptor_value_to_file(int fd, const char* descriptor, const char* 
 // File name
 
 bool write_file_name(int fd_output, const char* file_name) {
-    if(!write_descriptor_value_to_file(fd_output, "file name: \0", file_name)) return false;
+    char *actual_file_name = strrchr(file_name, '/');
+    if(actual_file_name == NULL) {
+        if(!write_descriptor_value_to_file(fd_output, "file name: \0", file_name)) return false;
+        PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", file_name, OUTPUT);
+    } 
+    else {
+        ++actual_file_name; // Jump over '/'
+        if(!write_descriptor_value_to_file(fd_output, "file name: \0", actual_file_name)) return false;
+        PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", actual_file_name, OUTPUT);
+    }
     
-    PRINT_DEBUG("DEBUG", "Wrote %s to %s", file_name, OUTPUT);
+    
     return true;
 }
 

@@ -27,5 +27,3 @@ You can either enable both flags or only one:
 - **BUILD_TESTS** - This option builds the unit tests and enables ctest.
 
 TIP: You can use ```ctest --verbose``` for mode detailed information when tests are executed.
-
-
