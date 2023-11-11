@@ -19,6 +19,8 @@ void test_WrongNumberOfArgsHigher() {
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_WrongNumberOfArgsLower);
+    perror("");
     RUN_TEST(test_WrongNumberOfArgsHigher);
+    perror("");
     return UNITY_END();
 }

@@ -54,14 +54,15 @@ bool write_descriptor_value_to_file(int fd, const char* descriptor, const char* 
 bool write_file_name(int fd_output, const char* file_name) {
     char *actual_file_name = strrchr(file_name, '/');
     if(actual_file_name == NULL) {
-        if(!write_descriptor_value_to_file(fd_output, "file name: \0", file_name)) return false;
+        if(!write_to_file(fd_output, file_name, strlen(file_name))) return false;
         PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", file_name, OUTPUT);
     } 
     else {
         ++actual_file_name; // Jump over '/'
-        if(!write_descriptor_value_to_file(fd_output, "file name: \0", actual_file_name)) return false;
+        if(!write_to_file(fd_output, actual_file_name, strlen(actual_file_name))) return false;
         PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", actual_file_name, OUTPUT);
     }
+    if(!write_newline(fd_output)) return false;
     
     
     return true;
@@ -185,24 +186,24 @@ bool write_statistics(const char* file_name) {
         return false;
     }
 
-    int fd_image = open(file_name, O_RDONLY);
-    if(fd_image == -1) {
+    int fd_file = open(file_name, O_RDONLY);
+    if(fd_file == -1) {
         close(fd_statistics);
         return false;
     }
 
     PRINT_DEBUG("DEBUG", "Opened %s", file_name);
-
-    if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_image);
-    if(!write_bmp_sizes(fd_statistics, fd_image)) return stop(fd_statistics, fd_image);
-    if(!write_stat_information(fd_statistics, file_name)) return stop(fd_statistics, fd_image);
+    
+    if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
+    if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_statistics, fd_file);
+    if(!write_stat_information(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
 
     if(close(fd_statistics) == -1) {
-        close(fd_image); 
+        close(fd_file); 
         return false; 
     }
     PRINT_DEBUG("DEBUG", "Closed %s", OUTPUT);
-    if(close(fd_image) == -1) {
+    if(close(fd_file) == -1) {
         return false;
     }
     PRINT_DEBUG("DEBUG", "Closed %s", file_name);

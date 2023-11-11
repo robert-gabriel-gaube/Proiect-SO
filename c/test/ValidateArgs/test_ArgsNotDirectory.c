@@ -5,14 +5,15 @@ void setUp(void) {}
 
 void tearDown(void) {}
 
-void test_NoExtension() {
-    char *ptrs[2]; char filename[] = "test";
+void test_NotDirectory() {
+    char *ptrs[2]; char filename[] = "Makefile";
     ptrs[1] = filename;
     TEST_ASSERT_FALSE(are_args_valid(2, ptrs));
 }
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_NoExtension);
+    RUN_TEST(test_NotDirectory);
+    perror("");
     return UNITY_END();
 }

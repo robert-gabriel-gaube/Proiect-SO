@@ -1,7 +1,11 @@
 #include "generals.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
 
 bool is_same_extension(char *file_name, char* expected_extension) {
     char *extension = strrchr(file_name, '.');
@@ -21,11 +25,17 @@ bool is_same_extension(char *file_name, char* expected_extension) {
 
 bool are_args_valid(int argc, char** argv) {
     if(argc != 2) {
-        fprintf(stderr, "Usage ./program <input_file>\n");
+        fprintf(stderr, "Usage ./program <input_directory>\n");
         return false;
     }
-    if(!is_same_extension(argv[1], ".bmp")) {
+    struct stat statistics;
+    if(stat(argv[1], &statistics) == -1){
         return false;
     }
+    if(!S_ISDIR(statistics.st_mode)) {
+        fprintf(stderr, "File is not directory\n");
+        return false;
+    }
+
     return true;
 }

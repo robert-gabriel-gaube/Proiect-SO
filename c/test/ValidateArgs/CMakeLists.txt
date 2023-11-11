@@ -2,8 +2,7 @@ set(SOURCE_PATH ../../src)
 
 set(TEST_CASES
     test_ArgsWrongNumberOfArgs
-    test_ArgsWrongExtension
-    test_ArgsNoExtension
+    test_ArgsNotDirectory
     test_ArgsGoodValues
 )
 
@@ -13,3 +12,5 @@ foreach(TEST_CASE ${TEST_CASES})
     target_link_libraries(${TEST_CASE} PRIVATE unity)
     add_test(NAME ${TEST_CASE} COMMAND ${TEST_CASE})
 endforeach()
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test-dir DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
