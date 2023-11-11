@@ -20,8 +20,7 @@ Steps to get the repository up and running. We need to setup submodules for the 
 1. ```mkdir build && cd build```
 2. ```cmake -DDEBUG=[ON/OFF] -DBUILD_TESTS=[ON/OFF] ..``` 
 3. ```make```
-4. ```./program <input_file>```
-5. ```ctest``` (If BUILD_TESTS is enabled)
+4. ```./program <input_file>``` or ```ctest``` (If BUILD_TESTS is enabled)
 
 You can either enable both flags or only one: 
 - **DEBUG** - This option prints debug information when the application is executed.
