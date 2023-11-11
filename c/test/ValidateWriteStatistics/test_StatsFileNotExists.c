@@ -1,18 +1,17 @@
 #include "unity.h"
 #include "statistics.h"
-#include <errno.h>
 
 void setUp(void) {} 
 
 void tearDown(void) {}
 
-void test_GoodBmp() {
-    TEST_ASSERT_TRUE(write_statistics("./resources-test/good-bmp.bmp"));
+void test_StatsFileNotExists() {
+    TEST_ASSERT_FALSE(write_statistics("../a.bmp"));
 }
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_GoodBmp);
+    RUN_TEST(test_StatsFileNotExists);
     perror("");
     return UNITY_END();
 }

@@ -1,0 +1,5 @@
+directory name: resources-test
+user identificator: 1000
+user permissions: RWX
+group permissions: RWX
+others permission: R-X

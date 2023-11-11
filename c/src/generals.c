@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-bool is_same_extension(char *file_name, char* expected_extension) {
+bool is_same_extension(const char *file_name, const char* expected_extension) {
     char *extension = strrchr(file_name, '.');
 
     if(NULL == extension || strcmp(extension, expected_extension)) {

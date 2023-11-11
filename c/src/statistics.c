@@ -33,18 +33,18 @@ bool stop(int fd1, int fd2) {
     return false;
 }
 
-bool write_to_file(int fd, const char *bytes, size_t numBytes) {
-    ssize_t code = write(fd, bytes, numBytes);
+bool write_to_file(int fd, const char *bytes) {
+    ssize_t code = write(fd, bytes, strlen(bytes));
     return code == -1 ? false : true;
 }
 
 bool write_newline(int fd) {
-    return write_to_file(fd, "\n", 1);
+    return write_to_file(fd, "\n");
 }
 
 bool write_descriptor_value_to_file(int fd, const char* descriptor, const char* value) {
-    if(!write_to_file(fd, descriptor, strlen(descriptor))) return false;
-    if(!write_to_file(fd, value, strlen(value))) return false;
+    if(!write_to_file(fd, descriptor)) return false;
+    if(!write_to_file(fd, value)) return false;
     if(!write_newline(fd)) return false;
     return true;
 }
@@ -54,12 +54,12 @@ bool write_descriptor_value_to_file(int fd, const char* descriptor, const char* 
 bool write_file_name(int fd_output, const char* file_name) {
     char *actual_file_name = strrchr(file_name, '/');
     if(actual_file_name == NULL) {
-        if(!write_to_file(fd_output, file_name, strlen(file_name))) return false;
+        if(!write_to_file(fd_output, file_name)) return false;
         PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", file_name, OUTPUT);
     } 
     else {
         ++actual_file_name; // Jump over '/'
-        if(!write_to_file(fd_output, actual_file_name, strlen(actual_file_name))) return false;
+        if(!write_to_file(fd_output, actual_file_name)) return false;
         PRINT_DEBUG("DEBUG", "Wrote '%s' to %s", actual_file_name, OUTPUT);
     }
     if(!write_newline(fd_output)) return false;
@@ -153,27 +153,18 @@ bool write_permissions(int fd_statistics, mode_t mode) {
     return true;
 }
 
-bool write_stat_information(int fd_statistics, const char* file_name) {
-    struct stat statistics;
-    if(stat(file_name, &statistics) == -1) {
-        return false;
-    }
-
-    PRINT_DEBUG("DEBUG", "Got '%s' statistics", file_name);
-
+bool write_user_id(int fd_statistics, uid_t uid) {
     char string_number[20];
-    sprintf(string_number, "%u", statistics.st_uid);
+    sprintf(string_number, "%u", uid);
     if(!write_descriptor_value_to_file(fd_statistics, "user identificator: \0", string_number)) return false;
     PRINT_DEBUG("DEBUG", "Wrote user id(%s) to %s", string_number, OUTPUT);
-
-    if(!write_modified_date(fd_statistics, statistics.st_mtim)) return false;
-
-    sprintf(string_number, "%lu", statistics.st_nlink);
+    return true;
+}
+bool write_number_hardlinks(int fd_statistics, nlink_t links) {
+    char string_number[20];
+    sprintf(string_number, "%lu", links);
     if(!write_descriptor_value_to_file(fd_statistics, "number of hardlinks: \0", string_number)) return false;
     PRINT_DEBUG("DEBUG", "Wrote hardlink number(%s) to %s", string_number, OUTPUT);
-
-    if(!write_permissions(fd_statistics, statistics.st_mode)) return false;
-
     return true;
 }
 
@@ -193,10 +184,33 @@ bool write_statistics(const char* file_name) {
     }
 
     PRINT_DEBUG("DEBUG", "Opened %s", file_name);
-    
-    if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
-    if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_statistics, fd_file);
-    if(!write_stat_information(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
+
+    struct stat statistics;
+    if(stat(file_name, &statistics) == -1) {
+        return false;
+    }
+
+    PRINT_DEBUG("DEBUG", "Got '%s' statistics", file_name);
+
+    if(S_ISREG(statistics.st_mode)) {
+        if(!write_to_file(fd_statistics, "file name: ")) return stop(fd_statistics, fd_file);
+        if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
+
+        if(is_same_extension(file_name, ".bmp")) {
+            if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_statistics, fd_file);
+        }
+        
+        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_statistics, fd_file);
+        if(!write_modified_date(fd_statistics, statistics.st_mtim)) return stop(fd_statistics, fd_file);
+        if(!write_number_hardlinks(fd_statistics, statistics.st_nlink)) return stop(fd_statistics, fd_file);
+        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_statistics, fd_file);
+    } 
+    else if(S_ISDIR(statistics.st_mode)) {
+        if(!write_to_file(fd_statistics, "directory name: ")) return stop(fd_statistics, fd_file);
+        if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
+        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_statistics, fd_file);
+        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_statistics, fd_file);
+    }
 
     if(close(fd_statistics) == -1) {
         close(fd_file); 
