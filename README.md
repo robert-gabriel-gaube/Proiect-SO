@@ -15,7 +15,7 @@ Steps to get the repository up and running. We need to setup submodules for the 
 3. ```make```
 4. ```./program <input_file>```
  
-## For debbuging or running tests
+## How to run for debbuging or running tests
 
 1. ```mkdir build && cd build```
 2. ```cmake -DDEBUG=[ON/OFF] -DBUILD_TESTS=[ON/OFF] ..``` 
