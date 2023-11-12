@@ -13,7 +13,7 @@ Steps to get the repository up and running. We need to setup submodules for the 
 1. ```mkdir build && cd build```
 2. ```cmake ..``` 
 3. ```make```
-4. ```./program <input_file>```
+4. ```./program <input_directory>```
  
 ## How to run for debbuging or running tests
 
@@ -26,4 +26,6 @@ You can either enable both flags or only one:
 - **DEBUG** - This option prints debug information when the application is executed.
 - **BUILD_TESTS** - This option builds the unit tests and enables ctest.
 
-TIP: You can use ```ctest --verbose``` for mode detailed information when tests are executed.
+TIP1: You can use ```ctest --verbose``` for mode detailed information when tests are executed.
+TIP2: You can use ```ctest --tests-regex <regex_expression>``` to run only the tests that match that regex.
+You can also combine them
