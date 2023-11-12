@@ -6,6 +6,7 @@ set(TEST_CASES
     test_StatsGoodBmp
     test_StatsGoodRegularFile
     test_StatsGoodDirectory
+    test_StatsGoodSymlink
 )
 
 foreach(TEST_CASE ${TEST_CASES})

@@ -1,7 +1,9 @@
 file name: sample.txt
+size: 6
 user identificator: 1000
 last modified date: 11.11.2023
 number of hardlinks: 1
 user permissions: RW-
 group permissions: RW-
-others permission: R--
+others permissions: R--
+

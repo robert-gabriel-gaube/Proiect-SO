@@ -1,5 +1,6 @@
 #include "generals.h"
 #include "statistics.h"
+#include "process_directory.h"
 #include <stdio.h>
 
 int main(int argc, char **argv) {
@@ -7,9 +8,9 @@ int main(int argc, char **argv) {
         perror("");
         return -1;
     }
-    if(!write_statistics(argv[1])) {
+    if(!process_dir(argv[1])) {
         perror("");
         return -1;
-    };
+    }
     return 0;
 }

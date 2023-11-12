@@ -13,7 +13,6 @@
 #define OUTPUT "statistics.txt"
 #define WIDTH_POSITION 18
 #define HEIGHT_POSITION 22
-#define SIZE_POSITION 2
 
 #ifdef DEBUG
 #define PRINT_DEBUG(TYPE, format, args...) printf("[" TYPE "] " format "\n", ##args)
@@ -28,8 +27,8 @@ typedef struct uint32_optional {
 
 // Generals
 
-bool stop(int fd1, int fd2) {
-    close(fd1); close(fd2);
+bool stop(int fd1) {
+    close(fd1);
     return false;
 }
 
@@ -87,17 +86,21 @@ UINT32_OPTIONAL get_bmp_size_value(int fd_bmp, off_t position) {
     return result;
 }
 
+bool write_size(int fd_out, const char* msg, off_t size) {
+    char string_number[20]; sprintf(string_number, "%lu", size);
+    return write_descriptor_value_to_file(fd_out, msg, string_number);
+}
+
 // Write bmp height width and total bytes size to file
 bool write_bmp_sizes(int fd_where, int fd_bmp) {
-    char labels[3][10] = {"height", "width", "size"};
-    UINT32_OPTIONAL values[3] = {
+    char labels[2][10] = {"height", "width"};
+    UINT32_OPTIONAL values[2] = {
         get_bmp_size_value(fd_bmp, HEIGHT_POSITION),
         get_bmp_size_value(fd_bmp, WIDTH_POSITION),
-        get_bmp_size_value(fd_bmp, SIZE_POSITION)
     };
 
     char string_number[12], message[20];
-    for(int idx = 0; idx < 3; ++idx) {
+    for(int idx = 0; idx < 2; ++idx) {
         if(!values[idx].isPresent) return false;
 
         uint32_t value = values[idx].value;
@@ -143,11 +146,26 @@ bool write_permissions(int fd_statistics, mode_t mode) {
         other_permissions[idx] = (other_permissions_values[idx] & mode) ? encodings[idx] : '-';
     }   
     
-    if(!write_descriptor_value_to_file(fd_statistics, "user permissions: \0", user_permissions)) return false;
+    char user_text[50];
+    char group_text[50];
+    char others_text[50];
+
+    if(S_ISLNK(mode)) {
+        strcpy(user_text, "user permissions link: ");
+        strcpy(group_text, "group permissions link: ");
+        strcpy(others_text, "others permissions link: ");
+    } 
+    else {
+        strcpy(user_text, "user permissions: ");
+        strcpy(group_text, "group permissions: ");
+        strcpy(others_text, "others permissions: ");
+    }
+
+    if(!write_descriptor_value_to_file(fd_statistics, user_text, user_permissions)) return false;
     PRINT_DEBUG("DEBUG", "Wrote user permissions(%s) to %s", user_permissions, OUTPUT);
-    if(!write_descriptor_value_to_file(fd_statistics, "group permissions: \0", group_permissions)) return false;
+    if(!write_descriptor_value_to_file(fd_statistics, group_text, group_permissions)) return false;
     PRINT_DEBUG("DEBUG", "Wrote group permissions(%s) to %s", group_permissions, OUTPUT);
-    if(!write_descriptor_value_to_file(fd_statistics, "others permission: \0", other_permissions)) return false;
+    if(!write_descriptor_value_to_file(fd_statistics, others_text, other_permissions)) return false;
     PRINT_DEBUG("DEBUG", "Wrote others permissions(%s) to %s", other_permissions, OUTPUT);
 
     return true;
@@ -168,59 +186,71 @@ bool write_number_hardlinks(int fd_statistics, nlink_t links) {
     return true;
 }
 
-bool write_statistics(const char* file_name) {
-    int fd_statistics = creat(OUTPUT, S_IRUSR | S_IWUSR);
-
-    PRINT_DEBUG("DEBUG", "Opened %s", OUTPUT);
-    
-    if(fd_statistics == -1) {
-        return false;
-    }
+bool write_statistics(int fd_statistics, const char* file_name) {
+    PRINT_DEBUG("DEBUG", "Started writing statistics");
 
     int fd_file = open(file_name, O_RDONLY);
     if(fd_file == -1) {
-        close(fd_statistics);
         return false;
     }
 
     PRINT_DEBUG("DEBUG", "Opened %s", file_name);
 
     struct stat statistics;
-    if(stat(file_name, &statistics) == -1) {
-        return false;
+    if(lstat(file_name, &statistics) == -1) {
+        return stop(fd_file);
     }
 
     PRINT_DEBUG("DEBUG", "Got '%s' statistics", file_name);
 
-    if(S_ISREG(statistics.st_mode)) {
-        if(!write_to_file(fd_statistics, "file name: ")) return stop(fd_statistics, fd_file);
-        if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
+    if(S_ISLNK(statistics.st_mode)) {
+        PRINT_DEBUG("DEBUG", "'%s' is symlink", file_name);
+        mode_t link_mode = statistics.st_mode;
+
+        if(!write_to_file(fd_statistics, "symlink name: ")) return stop(fd_file);
+        if(!write_file_name(fd_statistics, file_name)) return stop(fd_file);
+        if(!write_size(fd_statistics, "link size: ", statistics.st_size)) return stop(fd_file);
+
+        if(stat(file_name, &statistics) == -1) {
+            return stop(fd_file);
+        }
+
+        if(!write_size(fd_statistics, "file size: ", statistics.st_size)) return stop(fd_file);
+        if(!write_permissions(fd_statistics, link_mode)) return stop(fd_file);
+    }
+    else if(S_ISREG(statistics.st_mode)) {
+        if(!write_to_file(fd_statistics, "file name: ")) return stop(fd_file);
+        if(!write_file_name(fd_statistics, file_name)) return stop(fd_file);
 
         if(is_same_extension(file_name, ".bmp")) {
-            if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_statistics, fd_file);
+            PRINT_DEBUG("DEBUG", "'%s' is bmp file", file_name);
+            if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_file);
+        } else {
+            PRINT_DEBUG("DEBUG", "'%s' is regular file", file_name);
         }
         
-        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_statistics, fd_file);
-        if(!write_modified_date(fd_statistics, statistics.st_mtim)) return stop(fd_statistics, fd_file);
-        if(!write_number_hardlinks(fd_statistics, statistics.st_nlink)) return stop(fd_statistics, fd_file);
-        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_statistics, fd_file);
+        if(!write_size(fd_statistics, "size: ", statistics.st_size)) return stop(fd_file);
+        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_file);
+        if(!write_modified_date(fd_statistics, statistics.st_mtim)) return stop(fd_file);
+        if(!write_number_hardlinks(fd_statistics, statistics.st_nlink)) return stop(fd_file);
+        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_file);
     } 
     else if(S_ISDIR(statistics.st_mode)) {
-        if(!write_to_file(fd_statistics, "directory name: ")) return stop(fd_statistics, fd_file);
-        if(!write_file_name(fd_statistics, file_name)) return stop(fd_statistics, fd_file);
-        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_statistics, fd_file);
-        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_statistics, fd_file);
+        PRINT_DEBUG("DEBUG", "'%s' is directory", file_name);
+        if(!write_to_file(fd_statistics, "directory name: ")) return stop(fd_file);
+        if(!write_file_name(fd_statistics, file_name)) return stop(fd_file);
+        if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_file);
+        if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_file);
     }
 
-    if(close(fd_statistics) == -1) {
-        close(fd_file); 
-        return false; 
-    }
-    PRINT_DEBUG("DEBUG", "Closed %s", OUTPUT);
     if(close(fd_file) == -1) {
         return false;
     }
+
     PRINT_DEBUG("DEBUG", "Closed %s", file_name);
 
+    if(!write_newline(fd_statistics)) return false;
+
+    PRINT_DEBUG("DEBUG", "Completed writing statistics\n");
     return true;
 }

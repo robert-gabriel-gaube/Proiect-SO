@@ -2,11 +2,25 @@
 #include "statistics.h"
 #include <errno.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#define OUTPUT "statistics.txt"
 
-void setUp(void) {} 
+int fd;
 
-void tearDown(void) {}
+void setUp(void) {
+    fd = creat(OUTPUT, S_IRUSR | S_IWUSR);
+    if(fd == -1) {
+        TEST_ABORT();
+    }
+} 
 
+void tearDown(void) {
+    if(close(fd) == -1) {
+        TEST_ABORT();
+    }
+}
 bool are_files_same(FILE *file1, FILE *file2) {
     const size_t buffer_size = 1024;
     char buffer1[buffer_size];
@@ -29,14 +43,14 @@ bool are_files_same(FILE *file1, FILE *file2) {
 }
 
 void test_StatsGoodDirectory() {
-    TEST_ASSERT_TRUE(write_statistics("./resources-test"));   
+    TEST_ASSERT_TRUE(write_statistics(fd, "./resources-test"));   
     FILE *statistics = NULL, *golden_data = NULL;
     if((statistics = fopen("statistics.txt", "rb")) == NULL) {
-        TEST_FAIL_MESSAGE("Couldn't open statistics.txt");
+        TEST_ABORT();
     }
     if((golden_data = fopen("./resources-test/good-directory-statistics.txt", "rb")) == NULL) {
         fclose(statistics);
-        TEST_FAIL_MESSAGE("Couldn't open golden data");
+        TEST_ABORT();
     }
     TEST_ASSERT_TRUE(are_files_same(statistics, golden_data));
 }

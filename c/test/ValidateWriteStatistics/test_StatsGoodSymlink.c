@@ -1,7 +1,6 @@
 #include "unity.h"
 #include "statistics.h"
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -22,6 +21,7 @@ void tearDown(void) {
         TEST_ABORT();
     }
 }
+
 bool are_files_same(FILE *file1, FILE *file2) {
     const size_t buffer_size = 1024;
     char buffer1[buffer_size];
@@ -43,13 +43,13 @@ bool are_files_same(FILE *file1, FILE *file2) {
     return true;
 }
 
-void test_StatsGoodBmp() {
-    TEST_ASSERT_TRUE(write_statistics(fd, "./resources-test/good-bmp.bmp"));   
+void test_StatsGoodSymlink() {
+    TEST_ASSERT_TRUE(write_statistics(fd, "./resources-test/link-bmp"));
     FILE *statistics = NULL, *golden_data = NULL;
     if((statistics = fopen("statistics.txt", "rb")) == NULL) {
         TEST_ABORT();
     }
-    if((golden_data = fopen("./resources-test/good-bmp-statistics.txt", "rb")) == NULL) {
+    if((golden_data = fopen("./resources-test/good-symlink-statistics.txt", "rb")) == NULL) {
         fclose(statistics);
         TEST_ABORT();
     }
@@ -58,7 +58,7 @@ void test_StatsGoodBmp() {
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_StatsGoodBmp);
+    RUN_TEST(test_StatsGoodSymlink);
     perror("");
     return UNITY_END();
 }

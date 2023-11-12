@@ -1,12 +1,27 @@
 #include "unity.h"
 #include "statistics.h"
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#define OUTPUT "statistics.txt"
 
-void setUp(void) {} 
+int fd;
 
-void tearDown(void) {}
+void setUp(void) {
+    fd = creat(OUTPUT, S_IRUSR | S_IWUSR);
+    if(fd == -1) {
+        TEST_ABORT();
+    }
+} 
+
+void tearDown(void) {
+    if(close(fd) == -1) {
+        TEST_ABORT();
+    }
+}
 
 void test_StatsFileNotExists() {
-    TEST_ASSERT_FALSE(write_statistics("../a.bmp"));
+    TEST_ASSERT_FALSE(write_statistics(fd, "../a.bmp"));
 }
 
 int main(void) {
