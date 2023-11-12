@@ -29,3 +29,5 @@ You can either enable both flags or only one:
 TIP1: You can use ```ctest --verbose``` for mode detailed information when tests are executed. \
 TIP2: You can use ```ctest --tests-regex <regex_expression>``` to run only the tests that match that regex. \
 You can also combine verbose with tests-regex
+
+FYI: I added the folder resources so you can run ```./program ../resources```
