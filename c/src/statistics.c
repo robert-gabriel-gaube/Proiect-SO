@@ -15,12 +15,6 @@
 #define WIDTH_POSITION 18
 #define HEIGHT_POSITION 22
 
-#ifdef DEBUG
-#define PRINT_DEBUG(TYPE, format, args...) printf("[" TYPE "] " format "\n", ##args)
-#else
-#define PRINT_DEBUG(TYPE, format, args...)
-#endif
-
 typedef struct uint32_optional {
     bool isPresent;
     uint32_t value;

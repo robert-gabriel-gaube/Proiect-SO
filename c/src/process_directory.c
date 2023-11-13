@@ -36,7 +36,7 @@ FILETYPE do_statistics(const char* source_dir_path,
     return filetype;
 }
 
-// Returns the number of lines written to the output file
+// Returns the number of lines written to the output file.
 int number_of_statistics_lines(FILETYPE filetype) {
     switch(filetype) {
         case BMP_FILE: return 10;
@@ -56,19 +56,27 @@ bool process_dir(const char *dir_path, const char *output_dir) {
     }
 
     struct dirent* entry = NULL;
-    int status = 0;
+    int status = 0, number_entries = 0;
 
     while((entry = readdir(directory)) != NULL) {
         int pid = 0;
+        ++number_entries;
+
+        PRINT_DEBUG("DEBUG", "Trying to create process");
         if((pid = fork()) < 0) {
-            closedir(directory);
+            PRINT_DEBUG("ERROR", "Process failed to create");
             return false;
         }
         if(pid == 0) {
             FILETYPE filetype = do_statistics(dir_path, output_dir, entry->d_name);
             exit(number_of_statistics_lines(filetype));
         }
-        wait(&status);
+    }
+    while(number_entries--) {
+        if(wait(&status) == -1) {
+            closedir(directory);
+            return false;
+        }
     }
     if(closedir(directory) == -1){
          return false;
