@@ -1,5 +1,12 @@
 #pragma once 
 
-#include <stdbool.h>
+typedef enum return_value { 
+    ERROR,
+    REGULAR_FILE,
+    BMP_FILE,
+    DIRECTORY,
+    SYMLINK,
+    OTHER
+}FILETYPE;
 
-bool write_statistics(int fd_statistics, const char* file_name);
+FILETYPE write_statistics(int fd_statistics, const char* file_name);

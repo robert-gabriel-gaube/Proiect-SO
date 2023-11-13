@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #define OUTPUT "statistics.txt"
 
 int fd;
@@ -44,7 +45,7 @@ bool are_files_same(FILE *file1, FILE *file2) {
 }
 
 void test_StatsGoodBmp() {
-    TEST_ASSERT_TRUE(write_statistics(fd, "./resources-test/good-bmp.bmp"));   
+    TEST_ASSERT_EQUAL(BMP_FILE, write_statistics(fd, "./resources-test/good-bmp.bmp"));   
     // FILE *statistics = NULL, *golden_data = NULL;
     // if((statistics = fopen("statistics.txt", "rb")) == NULL) {
     //     TEST_ABORT();

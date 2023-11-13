@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
         perror("");
         return -1;
     }
-    if(!process_dir(argv[1])) {
+    if(!process_dir(argv[1], argv[2])) {
         perror("");
         return -1;
     }

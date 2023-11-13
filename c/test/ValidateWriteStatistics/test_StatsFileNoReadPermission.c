@@ -21,7 +21,7 @@ void tearDown(void) {
 }
 
 void test_StatsFileNoReadPermission() {
-    TEST_ASSERT_FALSE(write_statistics(fd, "bmp-no-read.bmp"));
+    TEST_ASSERT_EQUAL(ERROR, write_statistics(fd, "bmp-no-read.bmp"));
 }
 
 int main(void) {

@@ -21,7 +21,7 @@ void tearDown(void) {
 }
 
 void test_StatsFileNotExists() {
-    TEST_ASSERT_FALSE(write_statistics(fd, "../a.bmp"));
+    TEST_ASSERT_EQUAL(ERROR, write_statistics(fd, "../a.bmp"));
 }
 
 int main(void) {

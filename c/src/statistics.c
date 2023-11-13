@@ -2,6 +2,7 @@
 #include "generals.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -29,7 +30,7 @@ typedef struct uint32_optional {
 
 bool stop(int fd1) {
     close(fd1);
-    return false;
+    return ERROR;
 }
 
 bool write_to_file(int fd, const char *bytes) {
@@ -186,12 +187,14 @@ bool write_number_hardlinks(int fd_statistics, nlink_t links) {
     return true;
 }
 
-bool write_statistics(int fd_statistics, const char* file_name) {
+FILETYPE write_statistics(int fd_statistics, const char* file_name) {
     PRINT_DEBUG("DEBUG", "Started writing statistics");
+
+    FILETYPE filetype = ERROR;
 
     int fd_file = open(file_name, O_RDONLY);
     if(fd_file == -1) {
-        return false;
+        return ERROR;
     }
 
     PRINT_DEBUG("DEBUG", "Opened %s", file_name);
@@ -204,6 +207,8 @@ bool write_statistics(int fd_statistics, const char* file_name) {
     PRINT_DEBUG("DEBUG", "Got '%s' statistics", file_name);
 
     if(S_ISLNK(statistics.st_mode)) {
+        filetype = SYMLINK;
+
         PRINT_DEBUG("DEBUG", "'%s' is symlink", file_name);
         mode_t link_mode = statistics.st_mode;
 
@@ -225,8 +230,10 @@ bool write_statistics(int fd_statistics, const char* file_name) {
         if(is_same_extension(file_name, ".bmp")) {
             PRINT_DEBUG("DEBUG", "'%s' is bmp file", file_name);
             if(!write_bmp_sizes(fd_statistics, fd_file)) return stop(fd_file);
+            filetype = BMP_FILE;
         } else {
             PRINT_DEBUG("DEBUG", "'%s' is regular file", file_name);
+            filetype = REGULAR_FILE;
         }
         
         if(!write_size(fd_statistics, "size: ", statistics.st_size)) return stop(fd_file);
@@ -236,21 +243,25 @@ bool write_statistics(int fd_statistics, const char* file_name) {
         if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_file);
     } 
     else if(S_ISDIR(statistics.st_mode)) {
+        filetype = DIRECTORY;
+
         PRINT_DEBUG("DEBUG", "'%s' is directory", file_name);
         if(!write_to_file(fd_statistics, "directory name: ")) return stop(fd_file);
         if(!write_file_name(fd_statistics, file_name)) return stop(fd_file);
         if(!write_user_id(fd_statistics, statistics.st_uid)) return stop(fd_file);
         if(!write_permissions(fd_statistics, statistics.st_mode)) return stop(fd_file);
     }
-
+    else {
+        filetype = OTHER;
+    }
     if(close(fd_file) == -1) {
-        return false;
+        return ERROR;
     }
 
     PRINT_DEBUG("DEBUG", "Closed %s", file_name);
 
-    if(!write_newline(fd_statistics)) return false;
+    if(!write_newline(fd_statistics)) return ERROR;
 
     PRINT_DEBUG("DEBUG", "Completed writing statistics\n");
-    return true;
+    return filetype;
 }
