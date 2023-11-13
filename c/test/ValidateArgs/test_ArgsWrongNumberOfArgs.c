@@ -6,13 +6,13 @@ void setUp(void) {}
 void tearDown(void) {}
 
 void test_WrongNumberOfArgsLower() {
-    char *ptrs[2];
+    char *ptrs[3];
     TEST_ASSERT_FALSE(are_args_valid(1, ptrs));
 }
 
 void test_WrongNumberOfArgsHigher() {
-    char *ptrs[2];
-    TEST_ASSERT_FALSE(are_args_valid(3, ptrs));
+    char *ptrs[3];
+    TEST_ASSERT_FALSE(are_args_valid(4, ptrs));
 }
 
 

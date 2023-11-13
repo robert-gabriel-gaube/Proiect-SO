@@ -17,8 +17,8 @@ bool is_same_extension(const char *file_name, const char* expected_extension) {
 }
 
 bool are_args_valid(int argc, char** argv) {
-    if(argc != 2) {
-        fprintf(stderr, "Usage ./program <input_directory>\n");
+    if(argc != 3) {
+        fprintf(stderr, "Usage ./program <input_directory> <output_directory>\n");
         return false;
     }
     struct stat statistics;
@@ -30,5 +30,13 @@ bool are_args_valid(int argc, char** argv) {
         return false;
     }
 
+    if(stat(argv[2], &statistics) == -1){
+        return false;
+    }
+    if(!S_ISDIR(statistics.st_mode)) {
+        fprintf(stderr, "File is not directory\n");
+        return false;
+    }
+    
     return true;
 }
