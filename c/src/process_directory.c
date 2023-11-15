@@ -77,6 +77,7 @@ bool process_dir(const char *dir_path, const char *output_dir) {
             closedir(directory);
             return false;
         }
+        printf("%d\n", status);
     }
     if(closedir(directory) == -1){
          return false;
