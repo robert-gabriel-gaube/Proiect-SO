@@ -69,14 +69,15 @@ bool transform_grayscale(const char *dir_path, const char *entry_name) {
 bool wait_processes(int number_processes) {
     int status;
     while(number_processes--) {
-        if(wait(&status) == -1) {
+        int child_pid = 0;
+        if((child_pid = wait(&status)) == -1) {
             return false;
         }
         if(WIFEXITED(status)) {
-            printf("Process ended with exit status: %d\n", WEXITSTATUS(status));
+            printf("Process with pid: %d ended with exit status: %d\n", child_pid, WEXITSTATUS(status));
         }
         else{
-            printf("Process ended unexpected \n");
+            printf("Process ended unexpectedly\n");
             return false;
         }
     }

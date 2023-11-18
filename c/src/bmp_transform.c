@@ -90,24 +90,23 @@ bool grayscale_filter(const char *bmp_filepath) {
         return stop_filter(fd_bmp);
     }
 
-    if(lseek(fd_bmp, RASTER_DATA_POSITION, SEEK_CUR) == -1) {
+    if(lseek(fd_bmp, RASTER_DATA_POSITION, SEEK_SET) == -1) {
         return stop_filter(fd_bmp);
     }
 
     for(size_t num_lines = 0; num_lines < height; ++num_lines) {
         if(read(fd_bmp, RGB_values, width * 3) == -1) return stop_filter(fd_bmp);
+        if(lseek(fd_bmp, -(int32_t)(width * 3), SEEK_CUR) == -1) return stop_filter(fd_bmp);
 
         for(size_t idx = 0; idx < width * 3; idx += 3) {
             uint8_t grayscale = RGB_values[idx] * RED_WEIGHT +
                                 RGB_values[idx + 1] * GREEN_WEIGHT +
                                 RGB_values[idx + 2] * BLUE_WEIGHT;
 
-            printf("(%ld) %u\n", num_lines * width + idx, grayscale);
             RGB_values[idx] = grayscale;
             RGB_values[idx + 1] = grayscale;
             RGB_values[idx + 2] = grayscale;
         }
-
         if(write(fd_bmp, RGB_values, width * 3) == -1) return stop_filter(fd_bmp);
     }
 
