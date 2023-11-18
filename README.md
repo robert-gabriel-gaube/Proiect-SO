@@ -13,7 +13,7 @@ Steps to get the repository up and running. We need to setup submodules for the 
 1. ```mkdir build && cd build```
 2. ```cmake ..``` 
 3. ```make```
-4. ```./program <input_directory>```
+4. ```./program <input_directory> <output_directory>```
  
 ## How to run for debbuging or running tests
 
@@ -30,4 +30,4 @@ TIP1: You can use ```ctest --verbose``` for mode detailed information when tests
 TIP2: You can use ```ctest --tests-regex <regex_expression>``` to run only the tests that match that regex. \
 You can also combine verbose with tests-regex
 
-FYI: I added the folder resources so you can run ```./program ../resources```
+FYI: I added the folder resources so you can run ```./program ../resources <output_directory>```
