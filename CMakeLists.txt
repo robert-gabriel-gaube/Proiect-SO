@@ -14,7 +14,8 @@ endif()
 set(SOURCES c/src/main.c
             c/src/generals.c
             c/src/statistics.c
-            c/src/process_directory.c)
+            c/src/process_directory.c
+            c/src/bmp_transform.c)
 
 add_executable(program ${SOURCES})
 target_include_directories(program PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/c/include)

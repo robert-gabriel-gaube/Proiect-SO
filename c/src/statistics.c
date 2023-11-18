@@ -11,14 +11,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#define OUTPUT "statistics.txt"
-#define WIDTH_POSITION 18
-#define HEIGHT_POSITION 22
-
-typedef struct uint32_optional {
-    bool isPresent;
-    uint32_t value;
-}UINT32_OPTIONAL;
+#define OUTPUT "<name>-statistics.txt"
 
 // Generals
 

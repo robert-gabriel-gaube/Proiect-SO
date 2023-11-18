@@ -1,4 +1,5 @@
 #include "process_directory.h"
+#include "bmp_transform.h"
 #include "statistics.h"
 #include "generals.h"
 #include <sys/types.h>
@@ -49,6 +50,51 @@ int number_of_statistics_lines(FILETYPE filetype) {
     return -2;
 }
 
+bool transform_grayscale(const char *dir_path, const char *entry_name) {
+    int pid_grayscale = 0;
+
+    if((pid_grayscale = fork()) < 0) {
+        PRINT_DEBUG("ERROR", "Process failed to create");
+        return false;
+    }
+    if(pid_grayscale == 0) {
+        char file_path[500];
+        sprintf(file_path, "%s%s", dir_path, entry_name);
+        if(!grayscale_filter(file_path)) return false;
+        exit(0);
+    }
+    return true;
+}
+
+bool wait_processes(int number_processes) {
+    int status;
+    while(number_processes--) {
+        if(wait(&status) == -1) {
+            return false;
+        }
+        if(WIFEXITED(status)) {
+            printf("Process ended with exit status: %d\n", WEXITSTATUS(status));
+        }
+        else{
+            printf("Process ended unexpected \n");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool statistics_write(const char* dir_path, const char *output_dir, const char* entry_name) {
+    int pid;
+    if((pid = fork()) < 0) {
+        return false;
+    }
+    if(pid == 0) {
+        FILETYPE filetype = do_statistics(dir_path, output_dir, entry_name);
+        exit(number_of_statistics_lines(filetype));
+    }
+    return true;
+}
+
 bool process_dir(const char *dir_path, const char *output_dir) {
     DIR* directory = opendir(dir_path);
     if(directory == NULL) {
@@ -56,29 +102,26 @@ bool process_dir(const char *dir_path, const char *output_dir) {
     }
 
     struct dirent* entry = NULL;
-    int status = 0, number_entries = 0;
+    int number_processes = 0;
 
     while((entry = readdir(directory)) != NULL) {
-        int pid = 0;
-        ++number_entries;
+        if(is_same_extension(entry->d_name, ".bmp")) {
+            PRINT_DEBUG("DEBUG", "Trying to create process");
 
+            ++number_processes;
+            if(!transform_grayscale(dir_path, entry->d_name)) return false;
+        }
         PRINT_DEBUG("DEBUG", "Trying to create process");
-        if((pid = fork()) < 0) {
-            PRINT_DEBUG("ERROR", "Process failed to create");
-            return false;
-        }
-        if(pid == 0) {
-            FILETYPE filetype = do_statistics(dir_path, output_dir, entry->d_name);
-            exit(number_of_statistics_lines(filetype));
-        }
+
+        ++number_processes;
+        if(!statistics_write(dir_path, output_dir, entry->d_name)) return false;
+        
     }
-    while(number_entries--) {
-        if(wait(&status) == -1) {
-            closedir(directory);
-            return false;
-        }
-        printf("%d\n", status);
+    if(!wait_processes(number_processes)) {
+        closedir(directory);
+        return false;
     }
+
     if(closedir(directory) == -1){
          return false;
     }
