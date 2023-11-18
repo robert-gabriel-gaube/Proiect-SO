@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -82,17 +83,32 @@ bool grayscale_filter(const char *bmp_filepath) {
     if(!read_from_file(fd_bmp, &width, WIDTH_POSITION, 4)) return stop_filter(fd_bmp);
     if(!read_from_file(fd_bmp, &height, HEIGHT_POSITION, 4)) return stop_filter(fd_bmp);
     
-    uint32_t position = RASTER_DATA_POSITION;
-    uint32_t end_position = position + width * height * 3;
+    uint8_t *RGB_values = (uint8_t*)malloc(width * 3);
 
-    uint8_t RGB[3];
+    if(RGB_values == NULL) {
+        fprintf(stderr, "Not enough space\n");
+        return stop_filter(fd_bmp);
+    }
 
-    for(; position < end_position; position += 3) {
-        if(!read_from_file(fd_bmp, RGB, position, 3)) return stop_filter(fd_bmp);
-        uint8_t grayscale = RGB[RED] * RED_WEIGHT + 
-                            RGB[GREEN] * GREEN_WEIGHT + 
-                            RGB[BLUE] * BLUE_WEIGHT;
-        if(!replace_pixels(fd_bmp, grayscale, position)) return stop_filter(fd_bmp);
+    if(lseek(fd_bmp, RASTER_DATA_POSITION, SEEK_CUR) == -1) {
+        return stop_filter(fd_bmp);
+    }
+
+    for(size_t num_lines = 0; num_lines < height; ++num_lines) {
+        if(read(fd_bmp, RGB_values, width * 3) == -1) return stop_filter(fd_bmp);
+
+        for(size_t idx = 0; idx < width * 3; idx += 3) {
+            uint8_t grayscale = RGB_values[idx] * RED_WEIGHT +
+                                RGB_values[idx + 1] * GREEN_WEIGHT +
+                                RGB_values[idx + 2] * BLUE_WEIGHT;
+
+            printf("(%ld) %u\n", num_lines * width + idx, grayscale);
+            RGB_values[idx] = grayscale;
+            RGB_values[idx + 1] = grayscale;
+            RGB_values[idx + 2] = grayscale;
+        }
+
+        if(write(fd_bmp, RGB_values, width * 3) == -1) return stop_filter(fd_bmp);
     }
 
     return true;
