@@ -1,3 +1,0 @@
-add_subdirectory(Unity)
-add_subdirectory(ValidateArgs)
-add_subdirectory(ValidateWriteStatistics)

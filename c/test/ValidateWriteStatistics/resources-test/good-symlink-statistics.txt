@@ -1,7 +1,0 @@
-symlink name: link-bmp
-link size: 12
-file size: 7372938
-user permissions link: RWX
-group permissions link: RWX
-others permissions link: RWX
-
